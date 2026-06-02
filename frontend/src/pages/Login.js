@@ -1,10 +1,9 @@
-// ============================================================
 // pages/Login.js — Página de Inicio de Sesión
-// ============================================================
+
 // useState maneja los datos del formulario y los errores.
 // useAuth nos da la función login del contexto global.
 // useNavigate nos permite redirigir después del login exitoso.
-// ============================================================
+
 
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -24,9 +23,9 @@ const Login = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  // ============================================================
+  
   // handleChange — actualiza el estado cuando el usuario escribe
-  // ============================================================
+  
   // e.target.name es el atributo "name" del input (email o password)
   // e.target.value es lo que el usuario escribió
   // Los "..." son spread operator: copia los campos anteriores
@@ -35,9 +34,9 @@ const Login = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // ============================================================
+  
   // handleSubmit — se ejecuta al enviar el formulario
-  // ============================================================
+  
   const handleSubmit = async (e) => {
     e.preventDefault(); // Evita que la página se recargue
     setError('');        // Limpiamos errores anteriores

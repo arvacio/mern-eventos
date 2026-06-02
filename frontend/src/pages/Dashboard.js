@@ -1,12 +1,12 @@
-// ============================================================
+
 // pages/Dashboard.js — Panel Principal
-// ============================================================
+
 // Esta es la página principal después del login.
 // Muestra todos los eventos del usuario y permite:
 // - Ver la lista de eventos
 // - Navegar a crear un nuevo evento
 // - Editar o eliminar cada evento
-// ============================================================
+
 
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -26,9 +26,9 @@ const Dashboard = () => {
 
   const navigate = useNavigate();
 
-  // ============================================================
+  
   // useEffect: carga los eventos al abrir la página
-  // ============================================================
+  
   useEffect(() => {
     fetchEvents();
   }, []); // [] = solo se ejecuta una vez al montar el componente
@@ -46,9 +46,9 @@ const Dashboard = () => {
     }
   };
 
-  // ============================================================
+  
   // handleDelete — elimina un evento con confirmación
-  // ============================================================
+  
   const handleDelete = async (id) => {
     // window.confirm muestra un diálogo de confirmación nativo del navegador
     if (!window.confirm('¿Estás seguro de eliminar este evento?')) return;
@@ -63,9 +63,9 @@ const Dashboard = () => {
     }
   };
 
-  // ============================================================
+  
   // Función auxiliar: formatea la fecha para mostrarla
-  // ============================================================
+  
   const formatDate = (dateString) => {
     const options = { year: 'numeric', month: 'long', day: 'numeric' };
     return new Date(dateString).toLocaleDateString('es-MX', options);
@@ -108,7 +108,7 @@ const Dashboard = () => {
               {/* Si el evento tiene imagen, la mostramos */}
               {event.image && (
                 <img
-                  src={`http://localhost:5000/uploads/${event.image}`}
+                  src={`http://150.136.162.117:5000/uploads/${event.image}`}
                   alt={event.name}
                   className="event-image"
                 />

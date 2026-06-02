@@ -1,13 +1,11 @@
-// ============================================================
 // middleware/auth.js — Verificación de Token JWT
-// ============================================================
+
 // Un "middleware" es una función que se ejecuta EN MEDIO de
 // una petición HTTP: después de que llega la petición, pero
 // antes de que el controlador la procese.
 //
 // Este middleware protege rutas: si el usuario no envía un
 // token válido, la petición es rechazada con error 401.
-// ============================================================
 
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
@@ -34,7 +32,6 @@ const protect = async (req, res, next) => {
       // .select('-password') significa "trae todos los campos EXCEPTO password"
       req.user = await User.findById(decoded.id).select('-password');
 
-      // next() le dice a Express "todo bien, continúa con el controlador"
       next();
     } catch (error) {
       console.error('Error de token:', error.message);

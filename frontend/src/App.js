@@ -1,6 +1,5 @@
-// ============================================================
 // App.js — Enrutador Principal
-// ============================================================
+
 // Aquí definimos TODAS las rutas de la aplicación.
 // React Router lee la URL del navegador y decide qué componente mostrar.
 //
@@ -11,7 +10,6 @@
 // /dashboard    → panel principal (protegida)
 // /events/new   → crear evento (protegida)
 // /events/edit/:id → editar evento (protegida)
-// ============================================================
 
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';

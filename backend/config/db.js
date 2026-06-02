@@ -1,10 +1,8 @@
-// ============================================================
 // config/db.js — Conexión a MongoDB
-// ============================================================
+
 // Este archivo se encarga de conectar tu servidor a la base de datos.
 // mongoose es la librería que nos permite hablar con MongoDB
 // usando JavaScript en lugar de consultas de base de datos.
-// ============================================================
 
 const mongoose = require('mongoose');
 

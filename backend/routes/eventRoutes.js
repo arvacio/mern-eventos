@@ -1,10 +1,8 @@
-// ============================================================
 // routes/eventRoutes.js — Rutas de Eventos
-// ============================================================
+
 // Aquí también configuramos Multer para la subida de imágenes.
 // Multer es un middleware que procesa archivos enviados en
 // formularios con enctype="multipart/form-data".
-// ============================================================
 
 const express = require('express');
 const router = express.Router();
@@ -21,9 +19,8 @@ const {
 
 const { protect } = require('../middleware/auth');
 
-// ============================================================
 // Configuración de Multer (almacenamiento en disco)
-// ============================================================
+
 const storage = multer.diskStorage({
   // destination: define EN QUÉ CARPETA se guardan los archivos
   destination: function (req, file, cb) {
@@ -60,9 +57,7 @@ const upload = multer({
   },
 });
 
-// ============================================================
 // Definición de rutas
-// ============================================================
 
 // Todas las rutas de eventos requieren autenticación (protect)
 

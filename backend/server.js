@@ -1,15 +1,14 @@
-// ============================================================
 // server.js — Servidor Principal
-// ============================================================
-// Este es el punto de entrada de tu backend. Aquí:
+
+// Punto de entrada del backend. Aquí:
 //   1. Cargamos las variables de entorno (.env)
 //   2. Configuramos los middlewares globales
 //   3. Conectamos las rutas
 //   4. Arrancamos el servidor
-// ============================================================
 
 // dotenv.config() DEBE ser la primera línea: carga las variables
 // del archivo .env para que process.env.XXXX funcione en todo el proyecto
+
 require('dotenv').config();
 
 const express = require('express');
@@ -28,9 +27,8 @@ connectDB();
 // Creamos la aplicación de Express
 const app = express();
 
-// ============================================================
 // MIDDLEWARES GLOBALES
-// ============================================================
+
 // Los middlewares se aplican a TODAS las peticiones que lleguen.
 
 // helmet: agrega encabezados HTTP de seguridad automáticamente
@@ -57,9 +55,8 @@ app.use(express.urlencoded({ extended: true }));
 // podrás acceder a ella en: http://localhost:5000/uploads/evento-123.jpg
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// ============================================================
 // RUTAS
-// ============================================================
+
 // Conectamos cada grupo de rutas con su prefijo de URL.
 // Todas las rutas de auth empezarán con /api/auth
 // Todas las rutas de eventos empezarán con /api/events
@@ -71,9 +68,8 @@ app.get('/', (req, res) => {
   res.json({ message: '🚀 API de MERN Eventos funcionando correctamente' });
 });
 
-// ============================================================
 // MANEJO GLOBAL DE ERRORES
-// ============================================================
+
 // Este middleware especial captura cualquier error que no fue
 // manejado en los controladores. Se reconoce porque tiene
 // 4 parámetros: (err, req, res, next)
@@ -84,9 +80,8 @@ app.use((err, req, res, next) => {
   });
 });
 
-// ============================================================
 // INICIAR EL SERVIDOR
-// ============================================================
+
 // Leemos el puerto del .env, o usamos 5000 por defecto
 const PORT = process.env.PORT || 5000;
 

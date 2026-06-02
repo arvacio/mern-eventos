@@ -1,13 +1,12 @@
-// ============================================================
 // routes/authRoutes.js — Rutas de Autenticación
-// ============================================================
+
 // Las "rutas" conectan una URL con su controlador.
 // Aquí definimos qué función se ejecuta cuando llega una
 // petición a cada URL.
 //
 // Express Router nos permite organizar rutas en archivos
 // separados y luego unirlos en server.js con un prefijo.
-// ============================================================
+
 
 const express = require('express');
 const router = express.Router(); // Creamos un mini-enrutador

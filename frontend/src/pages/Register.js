@@ -1,6 +1,6 @@
-// ============================================================
+
 // pages/Register.js — Página de Registro
-// ============================================================
+
 
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';

@@ -1,13 +1,11 @@
-// ============================================================
 // api/axios.js — Configuración central de Axios
-// ============================================================
+
 // En lugar de escribir la URL completa en cada petición,
 // creamos una instancia de Axios con la URL base del backend.
 //
 // También agregamos "interceptores": funciones que se ejecutan
 // automáticamente ANTES de cada petición o DESPUÉS de cada
 // respuesta, sin que tengamos que repetir código.
-// ============================================================
 
 import axios from 'axios';
 
@@ -19,9 +17,9 @@ const api = axios.create({
   baseURL: 'http://localhost:5000/api',
 });
 
-// ============================================================
+
 // INTERCEPTOR DE PETICIÓN (Request Interceptor)
-// ============================================================
+
 // Se ejecuta ANTES de enviar cada petición al backend.
 // Su misión: agregar el token JWT al encabezado Authorization
 // automáticamente, sin tener que hacerlo en cada llamada.
@@ -41,9 +39,9 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// ============================================================
+
 // INTERCEPTOR DE RESPUESTA (Response Interceptor)
-// ============================================================
+
 // Se ejecuta DESPUÉS de recibir cada respuesta del backend.
 // Su misión: si el backend devuelve un error 401 (no autorizado),
 // significa que el token expiró → limpiamos todo y mandamos al login.

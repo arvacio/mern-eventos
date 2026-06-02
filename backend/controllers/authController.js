@@ -1,19 +1,16 @@
-// ============================================================
 // controllers/authController.js — Lógica de Autenticación
-// ============================================================
+
 // Los "controladores" contienen la lógica de negocio.
 // Cuando llega una petición a una ruta, el controlador decide
 // qué hacer: consultar la base de datos, validar datos, etc.
 //
 // Separamos la lógica aquí para mantener las rutas limpias.
-// ============================================================
 
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
-// ============================================================
 // Función auxiliar: genera un token JWT
-// ============================================================
+
 // jwt.sign(payload, secreto, opciones)
 // - payload: datos que queremos guardar en el token (el ID del usuario)
 // - secreto: la clave para firmar (viene del .env)
@@ -22,9 +19,9 @@ const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '7d' });
 };
 
-// ============================================================
+
 // POST /api/auth/register — Registrar nuevo usuario
-// ============================================================
+
 const register = async (req, res) => {
   // Extraemos los datos que vienen en el cuerpo de la petición
   const { name, email, password } = req.body;
@@ -52,9 +49,8 @@ const register = async (req, res) => {
   }
 };
 
-// ============================================================
 // POST /api/auth/login — Iniciar sesión
-// ============================================================
+
 const login = async (req, res) => {
   const { email, password } = req.body;
 
@@ -80,9 +76,8 @@ const login = async (req, res) => {
   }
 };
 
-// ============================================================
 // GET /api/auth/profile — Obtener perfil del usuario
-// ============================================================
+
 // Esta ruta está protegida: solo funciona si envías un token válido.
 // req.user viene del middleware 'protect' que ejecutamos antes.
 const getProfile = async (req, res) => {

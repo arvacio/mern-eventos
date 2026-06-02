@@ -1,23 +1,18 @@
-// ============================================================
 // context/AuthContext.js — Estado Global de Autenticación
-// ============================================================
+
 // React Context nos permite compartir datos entre componentes
 // sin tener que pasar props manualmente en cada nivel.
-//
-// Imagínalo como una "mochila" global: el token, el usuario y
-// las funciones de login/logout están disponibles en CUALQUIER
-// componente de la app sin necesidad de pasarlos uno a uno.
-// ============================================================
+
 
 import { createContext, useState, useContext, useEffect } from 'react';
 import api from '../api/axios';
 
-// 1. Creamos el contexto (es como crear la "mochila")
+// 1. Creamos el contexto
 const AuthContext = createContext();
 
-// ============================================================
+
 // AuthProvider — el componente que "envuelve" toda la app
-// ============================================================
+
 // Todos los componentes dentro de <AuthProvider> tendrán acceso
 // al estado de autenticación.
 export const AuthProvider = ({ children }) => {
@@ -26,9 +21,9 @@ export const AuthProvider = ({ children }) => {
   // Estado de carga: mientras verificamos el token al inicio
   const [loading, setLoading] = useState(true);
 
-  // ============================================================
+  
   // useEffect: se ejecuta UNA SOLA VEZ al cargar la app
-  // ============================================================
+  
   // Verifica si hay un token guardado en localStorage.
   // Esto permite que la sesión persista aunque cierres el navegador.
   useEffect(() => {
@@ -53,9 +48,9 @@ export const AuthProvider = ({ children }) => {
     checkToken();
   }, []); // El [] significa "ejecutar solo una vez al montar"
 
-  // ============================================================
+  
   // Función login
-  // ============================================================
+  
   const login = async (email, password) => {
     // Enviamos las credenciales al backend
     const { data } = await api.post('/auth/login', { email, password });
@@ -69,9 +64,9 @@ export const AuthProvider = ({ children }) => {
     return data;
   };
 
-  // ============================================================
+  
   // Función register
-  // ============================================================
+  
   const register = async (name, email, password) => {
     const { data } = await api.post('/auth/register', { name, email, password });
 
@@ -81,9 +76,9 @@ export const AuthProvider = ({ children }) => {
     return data;
   };
 
-  // ============================================================
+  
   // Función logout
-  // ============================================================
+  
   const logout = () => {
     // Eliminamos el token del localStorage
     localStorage.removeItem('token');
@@ -109,9 +104,9 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
-// ============================================================
+
 // Hook personalizado: useAuth
-// ============================================================
+
 // En lugar de importar AuthContext y useContext en cada componente,
 // creamos este hook que hace ambas cosas de una sola vez.
 // Uso: const { user, login, logout } = useAuth();

@@ -1,15 +1,12 @@
-// ============================================================
 // components/ProtectedRoute.js — Rutas Protegidas
-// ============================================================
+
 // Este componente "protege" páginas que solo deben ser
 // accesibles cuando el usuario está autenticado.
 //
 // Cómo funciona:
 // - Si hay sesión activa → muestra la página solicitada
 // - Si NO hay sesión → redirige automáticamente al /login
-//
-// Lo usaremos en App.js para envolver las páginas privadas.
-// ============================================================
+
 
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';

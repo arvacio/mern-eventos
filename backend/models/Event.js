@@ -1,9 +1,8 @@
-// ============================================================
+
 // models/Event.js — Modelo de Evento
-// ============================================================
-// Este es el recurso principal de tu aplicación: los eventos
+
+// Este es el recurso principal de la aplicación: los eventos
 // que los usuarios pueden crear, ver, editar y eliminar.
-// ============================================================
 
 const mongoose = require('mongoose');
 
@@ -43,13 +42,14 @@ const eventSchema = new mongoose.Schema(
       default: null, // Si no suben imagen, queda en null
     },
 
-    // ============================================================
+  
     // RELACIÓN CON EL USUARIO
-    // ============================================================
+  
     // Aquí está la clave: cada evento "pertenece" a un usuario.
     // mongoose.Schema.Types.ObjectId es el tipo de ID que usa MongoDB.
     // ref: 'User' le dice a mongoose que este ID apunta a un User.
     // Así podemos saber quién creó cada evento.
+    
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',

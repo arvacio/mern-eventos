@@ -1,10 +1,8 @@
-// ============================================================
 // index.js — Punto de Entrada de React
-// ============================================================
+
 // Este es el primer archivo que ejecuta React.
 // Su única misión: montar el componente App dentro del
 // elemento <div id="root"> que está en public/index.html
-// ============================================================
 
 import React from 'react';
 import ReactDOM from 'react-dom/client';

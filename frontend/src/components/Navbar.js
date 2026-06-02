@@ -1,12 +1,11 @@
-// ============================================================
 // components/Navbar.js — Navbar con Toggle de Modo Oscuro
-// ============================================================
+
 // Cambios respecto a la versión anterior:
 // - Agregamos un botón 🌙 / ☀️ para cambiar el tema
 // - Guardamos la preferencia en localStorage para que
 //   se recuerde aunque el usuario cierre el navegador
 // - Al cargar la app, leemos localStorage y aplicamos el tema
-// ============================================================
+
 
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -24,9 +23,9 @@ const Navbar = () => {
     return localStorage.getItem('theme') === 'dark';
   });
 
-  // ============================================================
+  
   // useEffect: aplica el tema cada vez que darkMode cambia
-  // ============================================================
+  
   useEffect(() => {
     if (darkMode) {
       // Agregamos la clase "dark" al body
@@ -40,9 +39,9 @@ const Navbar = () => {
     }
   }, [darkMode]); // Se ejecuta cada vez que darkMode cambia
 
-  // ============================================================
+  
   // useEffect: al montar la Navbar, aplica el tema guardado
-  // ============================================================
+  
   // Esto es importante para que al recargar la página,
   // el tema se aplique ANTES de que el usuario vea nada
   useEffect(() => {

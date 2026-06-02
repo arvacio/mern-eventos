@@ -1,16 +1,12 @@
-// ============================================================
+
 // controllers/eventController.js — Lógica CRUD de Eventos
-// ============================================================
+
 // CRUD = Create, Read, Update, Delete
-// Estas son las 4 operaciones básicas que se hacen sobre cualquier
-// recurso en una aplicación web.
-// ============================================================
 
 const Event = require('../models/Event');
 
-// ============================================================
 // POST /api/events — Crear un nuevo evento
-// ============================================================
+
 const createEvent = async (req, res) => {
   // Extraemos los datos del cuerpo de la petición
   const { name, date, location, description } = req.body;
@@ -34,9 +30,8 @@ const createEvent = async (req, res) => {
   }
 };
 
-// ============================================================
 // GET /api/events — Obtener TODOS los eventos del usuario
-// ============================================================
+
 const getEvents = async (req, res) => {
   try {
     // .find({ user: req.user._id }) — solo los eventos DE ESTE usuario
@@ -50,9 +45,8 @@ const getEvents = async (req, res) => {
   }
 };
 
-// ============================================================
 // GET /api/events/:id — Obtener UN evento por su ID
-// ============================================================
+
 // El :id en la URL es un "parámetro de ruta"
 // Si la URL es /api/events/abc123, entonces req.params.id = "abc123"
 const getEventById = async (req, res) => {
@@ -76,9 +70,8 @@ const getEventById = async (req, res) => {
   }
 };
 
-// ============================================================
 // PUT /api/events/:id — Actualizar un evento
-// ============================================================
+
 const updateEvent = async (req, res) => {
   const { name, date, location, description } = req.body;
 
@@ -116,9 +109,8 @@ const updateEvent = async (req, res) => {
   }
 };
 
-// ============================================================
 // DELETE /api/events/:id — Eliminar un evento
-// ============================================================
+
 const deleteEvent = async (req, res) => {
   try {
     const event = await Event.findById(req.params.id);
