@@ -1,0 +1,62 @@
+/* ============================================================
+   styles/EventForm.css — con modo oscuro
+   ============================================================ */
+
+.form-container {
+  max-width: 600px;
+  margin: 40px auto;
+  padding: 0 20px;
+}
+
+.form-container h2 {
+  font-size: 26px;
+  color: var(--text-primary);
+  margin-bottom: 28px;
+}
+
+.event-form {
+  background: var(--bg-card);
+  padding: 32px;
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border-color);
+  transition: var(--transition);
+}
+
+.event-form .form-group textarea {
+  font-family: inherit;
+  resize: vertical;
+}
+
+.event-form .form-group input[type="file"] {
+  padding: 8px 0;
+  border: none;
+  background: transparent;
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.image-preview {
+  margin-bottom: 10px;
+}
+
+.image-preview p {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+
+.image-preview img {
+  width: 100%;
+  max-height: 200px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+}
+
+.form-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 8px;
+}

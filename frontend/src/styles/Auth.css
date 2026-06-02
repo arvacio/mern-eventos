@@ -1,0 +1,63 @@
+/* ============================================================
+   styles/Auth.css — Login y Register con modo oscuro
+   ============================================================ */
+
+.auth-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--bg-page);
+  padding: 20px;
+  transition: var(--transition);
+}
+
+.auth-card {
+  background: var(--bg-card);
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  width: 100%;
+  max-width: 420px;
+  border: 1px solid var(--border-color);
+  transition: var(--transition);
+}
+
+.auth-card h2 {
+  font-size: 28px;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.auth-subtitle {
+  color: var(--text-secondary);
+  margin-bottom: 28px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.auth-card .btn-primary {
+  width: 100%;
+  padding: 12px;
+  font-size: 16px;
+  margin-top: 8px;
+}
+
+.auth-link {
+  text-align: center;
+  margin-top: 20px;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.auth-link a {
+  color: var(--btn-primary-bg);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.auth-link a:hover {
+  text-decoration: underline;
+}
