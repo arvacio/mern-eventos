@@ -1,4 +1,3 @@
-
 // models/User.js — Modelo de Usuario
 
 const mongoose = require('mongoose');

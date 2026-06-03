@@ -6,9 +6,6 @@
 //   3. Conectamos las rutas
 //   4. Arrancamos el servidor
 
-// dotenv.config() DEBE ser la primera línea: carga las variables
-// del archivo .env para que process.env.XXXX funcione en todo el proyecto
-
 require('dotenv').config();
 
 const express = require('express');
@@ -37,8 +34,7 @@ app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' },
 }));
 
-// cors: permite que el frontend (que corre en otro puerto)
-// pueda hacer peticiones a este backend.
+// cors: permite que el frontend (que corre en otro puerto) pueda hacer peticiones a este backend.
 // En desarrollo, origin: '*' acepta peticiones de cualquier origen.
 // En producción deberías cambiar '*' por la URL real de tu frontend.
 app.use(cors({ origin: '*' }));

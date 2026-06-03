@@ -20,10 +20,8 @@ router.post('/register', register);
 // POST /api/auth/login → ejecuta la función 'login'
 router.post('/login', login);
 
-// GET /api/auth/profile → primero verifica el token (protect),
-// luego ejecuta 'getProfile'
-// El middleware 'protect' se pasa como segundo argumento,
-// antes del controlador
+// GET /api/auth/profile → primero verifica el token (protect), luego ejecuta 'getProfile'
+// El middleware 'protect' se pasa como segundo argumento, antes del controlador
 router.get('/profile', protect, getProfile);
 
 module.exports = router;

@@ -1,75 +1,109 @@
-
-// pages/Dashboard.js — Panel Principal
-
-// Esta es la página principal después del login.
-// Muestra todos los eventos del usuario y permite:
-// - Ver la lista de eventos
-// - Navegar a crear un nuevo evento
-// - Editar o eliminar cada evento
-
-
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import Navbar from '../components/Navbar';
 import '../styles/Dashboard.css';
 
+const ERROR_MESSAGES = {
+  400: 'Solicitud inválida. Verifica los filtros ingresados.',
+  403: 'No tienes permiso para realizar esta acción.',
+  404: 'El recurso no fue encontrado.',
+};
+
+const getErrorMessage = (err, fallback) => {
+  const status = err.response?.status;
+  return err.response?.data?.message || ERROR_MESSAGES[status] || fallback;
+};
+
 const Dashboard = () => {
-  // Lista de eventos obtenidos del backend
   const [events, setEvents] = useState([]);
-
-  // Estado de carga mientras esperamos la respuesta
   const [loading, setLoading] = useState(true);
-
-  // Estado de error si algo sale mal
   const [error, setError] = useState('');
+
+  // Búsqueda y filtros
+  const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [sortBy, setSortBy] = useState('date');
+  const [sortOrder, setSortOrder] = useState('asc');
+
+  // Paginación
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalEvents, setTotalEvents] = useState(0);
 
   const navigate = useNavigate();
 
-  
-  // useEffect: carga los eventos al abrir la página
-  
+  // Debounce del texto de búsqueda (400ms)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+      setPage(1);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  // Re-fetch cuando cambian filtros o paginación
   useEffect(() => {
     fetchEvents();
-  }, []); // [] = solo se ejecuta una vez al montar el componente
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedSearch, startDate, endDate, sortBy, sortOrder, page]);
 
   const fetchEvents = async () => {
     try {
       setLoading(true);
-      // GET /api/events — el interceptor de Axios agrega el token automáticamente
-      const { data } = await api.get('/events');
-      setEvents(data);
+      setError('');
+
+      const params = { page, limit: 6, sortBy, sortOrder };
+      if (debouncedSearch.trim()) params.q = debouncedSearch.trim();
+      if (startDate) params.startDate = startDate;
+      if (endDate) params.endDate = endDate;
+
+      const { data } = await api.get('/events', { params });
+      setEvents(data.events);
+      setTotalPages(data.pages);
+      setTotalEvents(data.total);
     } catch (err) {
-      setError('Error al cargar los eventos');
+      setError(getErrorMessage(err, 'Error al cargar los eventos'));
     } finally {
       setLoading(false);
     }
   };
 
-  
-  // handleDelete — elimina un evento con confirmación
-  
   const handleDelete = async (id) => {
-    // window.confirm muestra un diálogo de confirmación nativo del navegador
     if (!window.confirm('¿Estás seguro de eliminar este evento?')) return;
 
     try {
       await api.delete(`/events/${id}`);
-      // Actualizamos la lista filtrando el evento eliminado
-      // (más rápido que volver a pedir toda la lista al backend)
-      setEvents(events.filter((event) => event._id !== id));
+      setEvents((prev) => prev.filter((e) => e._id !== id));
+      setTotalEvents((prev) => prev - 1);
     } catch (err) {
-      setError('Error al eliminar el evento');
+      setError(getErrorMessage(err, 'Error al eliminar el evento'));
     }
   };
 
-  
-  // Función auxiliar: formatea la fecha para mostrarla
-  
   const formatDate = (dateString) => {
     const options = { year: 'numeric', month: 'long', day: 'numeric' };
     return new Date(dateString).toLocaleDateString('es-MX', options);
   };
+
+  const handleFilterChange = (setter) => (e) => {
+    setter(e.target.value);
+    setPage(1);
+  };
+
+  const handleClearFilters = () => {
+    setSearch('');
+    setStartDate('');
+    setEndDate('');
+    setSortBy('date');
+    setSortOrder('asc');
+    setPage(1);
+  };
+
+  const hasActiveFilters =
+    search || startDate || endDate || sortBy !== 'date' || sortOrder !== 'asc';
 
   return (
     <div className="page">
@@ -78,34 +112,99 @@ const Dashboard = () => {
       <div className="dashboard-container">
         <div className="dashboard-header">
           <h1>Mis Eventos</h1>
-          {/* Botón para ir a la página de crear evento */}
           <Link to="/events/new" className="btn-primary">
             + Nuevo Evento
           </Link>
         </div>
 
-        {/* Mientras carga, mostramos un mensaje */}
-        {loading && <p className="loading-text">Cargando eventos...</p>}
+        {/* Controles: búsqueda, filtros y ordenamiento */}
+        <div className="dashboard-controls">
+          <div className="controls-row">
+            <input
+              type="text"
+              className="search-input"
+              placeholder="Buscar por nombre, lugar o descripción..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
 
-        {/* Si hay error, lo mostramos */}
+            <div className="sort-controls">
+              <select
+                value={sortBy}
+                onChange={handleFilterChange(setSortBy)}
+                className="sort-select"
+              >
+                <option value="date">Por fecha</option>
+                <option value="name">Por nombre</option>
+                <option value="location">Por ubicación</option>
+                <option value="createdAt">Por creación</option>
+              </select>
+              <button
+                className="btn-sort-order"
+                onClick={() => {
+                  setSortOrder((o) => (o === 'asc' ? 'desc' : 'asc'));
+                  setPage(1);
+                }}
+                title={sortOrder === 'asc' ? 'Ascendente' : 'Descendente'}
+              >
+                {sortOrder === 'asc' ? '↑ ASC' : '↓ DESC'}
+              </button>
+            </div>
+          </div>
+
+          <div className="controls-row controls-row--filters">
+            <div className="filter-group">
+              <label>Desde</label>
+              <input
+                type="date"
+                value={startDate}
+                onChange={handleFilterChange(setStartDate)}
+              />
+            </div>
+            <div className="filter-group">
+              <label>Hasta</label>
+              <input
+                type="date"
+                value={endDate}
+                onChange={handleFilterChange(setEndDate)}
+              />
+            </div>
+            {hasActiveFilters && (
+              <button className="btn-clear-filters" onClick={handleClearFilters}>
+                ✕ Limpiar filtros
+              </button>
+            )}
+          </div>
+        </div>
+
+        {loading && <p className="loading-text">Cargando eventos...</p>}
         {error && <div className="alert alert-error">{error}</div>}
 
-        {/* Si no hay eventos, mostramos un mensaje amigable */}
-        {!loading && events.length === 0 && (
+        {!loading && !error && events.length === 0 && (
           <div className="empty-state">
-            <p>🗓️ No tienes eventos aún.</p>
-            <Link to="/events/new" className="btn-primary">
-              Crear mi primer evento
-            </Link>
+            {hasActiveFilters ? (
+              <p>No se encontraron eventos con los filtros aplicados.</p>
+            ) : (
+              <>
+                <p>🗓️ No tienes eventos aún.</p>
+                <Link to="/events/new" className="btn-primary">
+                  Crear mi primer evento
+                </Link>
+              </>
+            )}
           </div>
         )}
 
-        {/* Lista de eventos */}
+        {!loading && totalEvents > 0 && (
+          <p className="results-count">
+            {totalEvents} evento{totalEvents !== 1 ? 's' : ''} encontrado
+            {totalEvents !== 1 ? 's' : ''}
+          </p>
+        )}
+
         <div className="events-grid">
           {events.map((event) => (
             <div key={event._id} className="event-card">
-
-              {/* Si el evento tiene imagen, la mostramos */}
               {event.image && (
                 <img
                   src={`http://150.136.162.117:5000/uploads/${event.image}`}
@@ -113,27 +212,21 @@ const Dashboard = () => {
                   className="event-image"
                 />
               )}
-
               <div className="event-body">
                 <h3 className="event-name">{event.name}</h3>
                 <p className="event-date">📅 {formatDate(event.date)}</p>
                 <p className="event-location">📍 {event.location}</p>
-
                 {event.description && (
                   <p className="event-description">{event.description}</p>
                 )}
               </div>
-
               <div className="event-actions">
-                {/* Botón editar: navega a la página de edición con el ID */}
                 <button
                   className="btn-secondary"
                   onClick={() => navigate(`/events/edit/${event._id}`)}
                 >
                   Editar
                 </button>
-
-                {/* Botón eliminar */}
                 <button
                   className="btn-danger"
                   onClick={() => handleDelete(event._id)}
@@ -144,6 +237,37 @@ const Dashboard = () => {
             </div>
           ))}
         </div>
+
+        {/* Paginación */}
+        {totalPages > 1 && (
+          <div className="pagination">
+            <button
+              className="btn-page"
+              disabled={page === 1}
+              onClick={() => setPage((p) => p - 1)}
+            >
+              ← Anterior
+            </button>
+
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+              <button
+                key={p}
+                className={`btn-page${p === page ? ' btn-page--active' : ''}`}
+                onClick={() => setPage(p)}
+              >
+                {p}
+              </button>
+            ))}
+
+            <button
+              className="btn-page"
+              disabled={page === totalPages}
+              onClick={() => setPage((p) => p + 1)}
+            >
+              Siguiente →
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -1,65 +1,115 @@
-
-// controllers/eventController.js — Lógica CRUD de Eventos
-
-// CRUD = Create, Read, Update, Delete
-
 const Event = require('../models/Event');
+const mongoose = require('mongoose');
 
-// POST /api/events — Crear un nuevo evento
-
+// POST /api/events — Crear evento
 const createEvent = async (req, res) => {
-  // Extraemos los datos del cuerpo de la petición
   const { name, date, location, description } = req.body;
 
+  if (!name || !date || !location) {
+    return res.status(400).json({ message: 'Los campos nombre, fecha y ubicación son obligatorios' });
+  }
+
   try {
-    // Creamos el evento en la base de datos
-    // req.user._id viene del middleware 'protect': es el usuario autenticado
-    // req.file es el archivo subido por Multer (si se subió alguno)
     const event = await Event.create({
       name,
       date,
       location,
       description,
-      user: req.user._id,                          // Quién creó este evento
-      image: req.file ? req.file.filename : null,  // Nombre del archivo subido
+      user: req.user._id,
+      image: req.file ? req.file.filename : null,
     });
 
     res.status(201).json(event);
   } catch (error) {
+    if (error.name === 'ValidationError') {
+      const messages = Object.values(error.errors).map((e) => e.message);
+      return res.status(400).json({ message: messages.join(', ') });
+    }
     res.status(500).json({ message: 'Error al crear evento', error: error.message });
   }
 };
 
-// GET /api/events — Obtener TODOS los eventos del usuario
-
+// GET /api/events — Obtener eventos con búsqueda, filtros, ordenamiento y paginación
+//
+// Query params:
+//   q         — texto libre (busca en nombre, ubicación y descripción)
+//   startDate — fecha mínima (YYYY-MM-DD)
+//   endDate   — fecha máxima (YYYY-MM-DD)
+//   sortBy    — campo: date | name | location | createdAt  (default: date)
+//   sortOrder — asc | desc  (default: asc)
+//   page      — número de página  (default: 1)
+//   limit     — resultados por página, máx 50  (default: 6)
 const getEvents = async (req, res) => {
   try {
-    // .find({ user: req.user._id }) — solo los eventos DE ESTE usuario
-    // .sort({ date: 1 }) — ordenados por fecha de más antiguo a más reciente
-    //   (usa -1 para orden inverso: más reciente primero)
-    const events = await Event.find({ user: req.user._id }).sort({ date: 1 });
+    const {
+      q = '',
+      startDate,
+      endDate,
+      sortBy = 'date',
+      sortOrder = 'asc',
+      page = 1,
+      limit = 6,
+    } = req.query;
 
-    res.json(events);
+    const filter = { user: req.user._id };
+
+    // Búsqueda de texto en nombre, ubicación y descripción
+    if (q.trim()) {
+      const regex = new RegExp(q.trim(), 'i');
+      filter.$or = [{ name: regex }, { location: regex }, { description: regex }];
+    }
+
+    // Filtro por rango de fechas
+    if (startDate || endDate) {
+      filter.date = {};
+      if (startDate) filter.date.$gte = new Date(startDate);
+      if (endDate) {
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        filter.date.$lte = end;
+      }
+    }
+
+    // Validar y sanitizar parámetros de ordenamiento
+    const allowedSortFields = ['date', 'name', 'location', 'createdAt'];
+    const sortField = allowedSortFields.includes(sortBy) ? sortBy : 'date';
+    const sortDir = sortOrder === 'desc' ? -1 : 1;
+
+    // Validar y sanitizar paginación
+    const pageNum = Math.max(1, parseInt(page) || 1);
+    const limitNum = Math.min(50, Math.max(1, parseInt(limit) || 6));
+    const skip = (pageNum - 1) * limitNum;
+
+    const [events, total] = await Promise.all([
+      Event.find(filter).sort({ [sortField]: sortDir }).skip(skip).limit(limitNum),
+      Event.countDocuments(filter),
+    ]);
+
+    res.json({
+      events,
+      total,
+      page: pageNum,
+      pages: Math.ceil(total / limitNum) || 1,
+      limit: limitNum,
+    });
   } catch (error) {
     res.status(500).json({ message: 'Error al obtener eventos', error: error.message });
   }
 };
 
-// GET /api/events/:id — Obtener UN evento por su ID
-
-// El :id en la URL es un "parámetro de ruta"
-// Si la URL es /api/events/abc123, entonces req.params.id = "abc123"
+// GET /api/events/:id — Obtener un evento por ID
 const getEventById = async (req, res) => {
+  if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+    return res.status(400).json({ message: 'ID de evento no válido' });
+  }
+
   try {
     const event = await Event.findById(req.params.id);
 
-    // Verificamos que el evento exista
     if (!event) {
       return res.status(404).json({ message: 'Evento no encontrado' });
     }
 
-    // Verificamos que el evento pertenezca al usuario autenticado
-    // .toString() convierte el ObjectId a string para poder compararlo
     if (event.user.toString() !== req.user._id.toString()) {
       return res.status(403).json({ message: 'No tienes permiso para ver este evento' });
     }
@@ -70,48 +120,51 @@ const getEventById = async (req, res) => {
   }
 };
 
-// PUT /api/events/:id — Actualizar un evento
-
+// PUT /api/events/:id — Actualizar evento
 const updateEvent = async (req, res) => {
+  if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+    return res.status(400).json({ message: 'ID de evento no válido' });
+  }
+
   const { name, date, location, description } = req.body;
 
   try {
-    // Primero buscamos el evento
     const event = await Event.findById(req.params.id);
 
     if (!event) {
       return res.status(404).json({ message: 'Evento no encontrado' });
     }
 
-    // Verificamos que sea el dueño del evento
     if (event.user.toString() !== req.user._id.toString()) {
       return res.status(403).json({ message: 'No tienes permiso para editar este evento' });
     }
 
-    // Actualizamos los campos (si vienen en la petición, los actualizamos;
-    // si no vienen, mantenemos el valor anterior con "|| event.campo")
     event.name = name || event.name;
     event.date = date || event.date;
     event.location = location || event.location;
-    event.description = description || event.description;
+    event.description = description !== undefined ? description : event.description;
 
-    // Si se subió una nueva imagen, actualizamos ese campo también
     if (req.file) {
       event.image = req.file.filename;
     }
 
-    // Guardamos los cambios en la base de datos
     const updatedEvent = await event.save();
-
     res.json(updatedEvent);
   } catch (error) {
+    if (error.name === 'ValidationError') {
+      const messages = Object.values(error.errors).map((e) => e.message);
+      return res.status(400).json({ message: messages.join(', ') });
+    }
     res.status(500).json({ message: 'Error al actualizar evento', error: error.message });
   }
 };
 
-// DELETE /api/events/:id — Eliminar un evento
-
+// DELETE /api/events/:id — Eliminar evento
 const deleteEvent = async (req, res) => {
+  if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+    return res.status(400).json({ message: 'ID de evento no válido' });
+  }
+
   try {
     const event = await Event.findById(req.params.id);
 
@@ -119,14 +172,11 @@ const deleteEvent = async (req, res) => {
       return res.status(404).json({ message: 'Evento no encontrado' });
     }
 
-    // Verificamos que sea el dueño
     if (event.user.toString() !== req.user._id.toString()) {
       return res.status(403).json({ message: 'No tienes permiso para eliminar este evento' });
     }
 
-    // findByIdAndDelete busca por ID y lo elimina en una sola operación
     await Event.findByIdAndDelete(req.params.id);
-
     res.json({ message: 'Evento eliminado correctamente' });
   } catch (error) {
     res.status(500).json({ message: 'Error al eliminar evento', error: error.message });

@@ -3,8 +3,7 @@
 // En lugar de escribir la URL completa en cada petición,
 // creamos una instancia de Axios con la URL base del backend.
 //
-// También agregamos "interceptores": funciones que se ejecutan
-// automáticamente ANTES de cada petición o DESPUÉS de cada
+// También agregamos funciones que se ejecutan automáticamente ANTES de cada petición o DESPUÉS de cada
 // respuesta, sin que tengamos que repetir código.
 
 import axios from 'axios';
@@ -12,9 +11,8 @@ import axios from 'axios';
 // Creamos una instancia personalizada de Axios
 const api = axios.create({
   // baseURL: todas las peticiones empezarán con esta URL
-  // En lugar de escribir 'http://localhost:5000/api/events',
-  // solo escribiremos '/events'
-  baseURL: 'http://localhost:5000/api',
+
+  baseURL: 'http://150.136.162.117:5000/api',
 });
 
 

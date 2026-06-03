@@ -1,13 +1,12 @@
-// ============================================================
 // pages/EventForm.js — Formulario de Crear / Editar Evento
-// ============================================================
+
 // Este componente sirve para DOS propósitos:
 // - Crear un nuevo evento (cuando no hay :id en la URL)
 // - Editar un evento existente (cuando hay :id en la URL)
 //
 // useParams lee los parámetros de la URL.
 // Si la URL es /events/edit/abc123, entonces params.id = "abc123"
-// ============================================================
+
 
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -37,9 +36,9 @@ const EventForm = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // ============================================================
+  
   // Si estamos editando, cargamos los datos del evento al iniciar
-  // ============================================================
+  
   useEffect(() => {
     if (isEditing) {
       const fetchEvent = async () => {
@@ -59,7 +58,14 @@ const EventForm = () => {
           // Guardamos la imagen actual para mostrarla
           if (data.image) setCurrentImage(data.image);
         } catch (err) {
-          setError('Error al cargar el evento');
+          const status = err.response?.status;
+          if (status === 403) {
+            setError('No tienes permiso para ver este evento.');
+          } else if (status === 404) {
+            setError('El evento no fue encontrado.');
+          } else {
+            setError('Error al cargar el evento');
+          }
         }
       };
       fetchEvent();
@@ -75,9 +81,9 @@ const EventForm = () => {
     setImageFile(e.target.files[0]); // files[0] = primer archivo seleccionado
   };
 
-  // ============================================================
+  
   // handleSubmit — envía el formulario
-  // ============================================================
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -108,7 +114,17 @@ const EventForm = () => {
       // Si todo salió bien, regresamos al dashboard
       navigate('/dashboard');
     } catch (err) {
-      setError(err.response?.data?.message || 'Error al guardar el evento');
+      const status = err.response?.status;
+      const message = err.response?.data?.message;
+      if (status === 400) {
+        setError(message || 'Datos inválidos. Revisa los campos del formulario.');
+      } else if (status === 403) {
+        setError('No tienes permiso para realizar esta acción.');
+      } else if (status === 404) {
+        setError('El evento no fue encontrado.');
+      } else {
+        setError(message || 'Error al guardar el evento');
+      }
     } finally {
       setLoading(false);
     }
@@ -180,7 +196,7 @@ const EventForm = () => {
               <div className="image-preview">
                 <p>Imagen actual:</p>
                 <img
-                  src={`http://localhost:5000/uploads/${currentImage}`}
+                  src={`http://150.136.162.117:5000/uploads/${currentImage}`}
                   alt="Imagen actual"
                 />
               </div>
