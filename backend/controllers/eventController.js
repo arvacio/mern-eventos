@@ -30,17 +30,21 @@ const createEvent = async (req, res) => {
 };
 
 // GET /api/events — Obtener eventos con búsqueda, filtros, ordenamiento y paginación
+// Admin ve TODOS los eventos de todos los usuarios (con nombre del dueño).
+// Usuario regular solo ve los suyos.
 //
 // Query params:
-//   q         — texto libre (busca en nombre, ubicación y descripción)
+//   q         — texto libre (nombre, ubicación, descripción)
 //   startDate — fecha mínima (YYYY-MM-DD)
 //   endDate   — fecha máxima (YYYY-MM-DD)
-//   sortBy    — campo: date | name | location | createdAt  (default: date)
+//   sortBy    — date | name | location | createdAt  (default: date)
 //   sortOrder — asc | desc  (default: asc)
 //   page      — número de página  (default: 1)
 //   limit     — resultados por página, máx 50  (default: 6)
 const getEvents = async (req, res) => {
   try {
+    const isAdmin = req.user.role === 'admin';
+
     const {
       q = '',
       startDate,
@@ -51,15 +55,14 @@ const getEvents = async (req, res) => {
       limit = 6,
     } = req.query;
 
-    const filter = { user: req.user._id };
+    // Admin ve todos; usuario regular solo los suyos
+    const filter = isAdmin ? {} : { user: req.user._id };
 
-    // Búsqueda de texto en nombre, ubicación y descripción
     if (q.trim()) {
       const regex = new RegExp(q.trim(), 'i');
       filter.$or = [{ name: regex }, { location: regex }, { description: regex }];
     }
 
-    // Filtro por rango de fechas
     if (startDate || endDate) {
       filter.date = {};
       if (startDate) filter.date.$gte = new Date(startDate);
@@ -70,18 +73,24 @@ const getEvents = async (req, res) => {
       }
     }
 
-    // Validar y sanitizar parámetros de ordenamiento
     const allowedSortFields = ['date', 'name', 'location', 'createdAt'];
     const sortField = allowedSortFields.includes(sortBy) ? sortBy : 'date';
     const sortDir = sortOrder === 'desc' ? -1 : 1;
 
-    // Validar y sanitizar paginación
     const pageNum = Math.max(1, parseInt(page) || 1);
     const limitNum = Math.min(50, Math.max(1, parseInt(limit) || 6));
     const skip = (pageNum - 1) * limitNum;
 
+    // Admin recibe nombre y email del dueño en cada evento
+    const eventsQuery = Event.find(filter)
+      .sort({ [sortField]: sortDir })
+      .skip(skip)
+      .limit(limitNum);
+
+    if (isAdmin) eventsQuery.populate('user', 'name email');
+
     const [events, total] = await Promise.all([
-      Event.find(filter).sort({ [sortField]: sortDir }).skip(skip).limit(limitNum),
+      eventsQuery,
       Event.countDocuments(filter),
     ]);
 
@@ -104,13 +113,16 @@ const getEventById = async (req, res) => {
   }
 
   try {
-    const event = await Event.findById(req.params.id);
+    const event = await Event.findById(req.params.id).populate('user', 'name email');
 
     if (!event) {
       return res.status(404).json({ message: 'Evento no encontrado' });
     }
 
-    if (event.user.toString() !== req.user._id.toString()) {
+    const isAdmin = req.user.role === 'admin';
+    const isOwner = event.user._id.toString() === req.user._id.toString();
+
+    if (!isAdmin && !isOwner) {
       return res.status(403).json({ message: 'No tienes permiso para ver este evento' });
     }
 
@@ -135,7 +147,10 @@ const updateEvent = async (req, res) => {
       return res.status(404).json({ message: 'Evento no encontrado' });
     }
 
-    if (event.user.toString() !== req.user._id.toString()) {
+    const isAdmin = req.user.role === 'admin';
+    const isOwner = event.user.toString() === req.user._id.toString();
+
+    if (!isAdmin && !isOwner) {
       return res.status(403).json({ message: 'No tienes permiso para editar este evento' });
     }
 
@@ -172,7 +187,10 @@ const deleteEvent = async (req, res) => {
       return res.status(404).json({ message: 'Evento no encontrado' });
     }
 
-    if (event.user.toString() !== req.user._id.toString()) {
+    const isAdmin = req.user.role === 'admin';
+    const isOwner = event.user.toString() === req.user._id.toString();
+
+    if (!isAdmin && !isOwner) {
       return res.status(403).json({ message: 'No tienes permiso para eliminar este evento' });
     }
 

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import Navbar from '../components/Navbar';
+import { useAuth } from '../context/AuthContext';
 import '../styles/Dashboard.css';
 
 const ERROR_MESSAGES = {
@@ -33,6 +34,8 @@ const Dashboard = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [totalEvents, setTotalEvents] = useState(0);
 
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'admin';
   const navigate = useNavigate();
 
   // Debounce del texto de búsqueda (400ms)
@@ -110,8 +113,14 @@ const Dashboard = () => {
       <Navbar />
 
       <div className="dashboard-container">
+        {isAdmin && (
+          <div className="admin-banner">
+            👑 Modo Administrador — estás viendo todos los eventos de todos los usuarios
+          </div>
+        )}
+
         <div className="dashboard-header">
-          <h1>Mis Eventos</h1>
+          <h1>{isAdmin ? 'Todos los Eventos' : 'Mis Eventos'}</h1>
           <Link to="/events/new" className="btn-primary">
             + Nuevo Evento
           </Link>
@@ -213,6 +222,11 @@ const Dashboard = () => {
                 />
               )}
               <div className="event-body">
+                {isAdmin && event.user && (
+                  <p className="event-owner">
+                    👤 {event.user.name} — {event.user.email}
+                  </p>
+                )}
                 <h3 className="event-name">{event.name}</h3>
                 <p className="event-date">📅 {formatDate(event.date)}</p>
                 <p className="event-location">📍 {event.location}</p>
