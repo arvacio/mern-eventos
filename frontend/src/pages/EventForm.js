@@ -33,8 +33,18 @@ const EventForm = () => {
   // Para mostrar la imagen actual cuando estamos editando
   const [currentImage, setCurrentImage] = useState(null);
 
+  // URL temporal para previsualizar la imagen recién seleccionada
+  const [previewUrl, setPreviewUrl] = useState(null);
+
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Libera la URL de objeto al desmontar o cuando cambia la imagen
+  useEffect(() => {
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+    };
+  }, [previewUrl]);
 
   
   // Si estamos editando, cargamos los datos del evento al iniciar
@@ -78,7 +88,11 @@ const EventForm = () => {
 
   // handleImageChange se ejecuta cuando el usuario selecciona un archivo
   const handleImageChange = (e) => {
-    setImageFile(e.target.files[0]); // files[0] = primer archivo seleccionado
+    const file = e.target.files[0];
+    if (!file) return;
+    setImageFile(file);
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    setPreviewUrl(URL.createObjectURL(file));
   };
 
   
@@ -204,9 +218,17 @@ const EventForm = () => {
 
             <input
               type="file"
-              accept="image/*"   // Solo acepta imágenes
+              accept="image/*"
               onChange={handleImageChange}
             />
+
+            {/* Vista previa de la imagen recién seleccionada */}
+            {previewUrl && (
+              <div className="image-preview">
+                <p>Vista previa:</p>
+                <img src={previewUrl} alt="Vista previa" />
+              </div>
+            )}
           </div>
 
           <div className="form-buttons">
