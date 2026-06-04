@@ -1,10 +1,9 @@
-
-// pages/Register.js — Página de Registro
-
+// pages/Register.js — página de registro
 
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import Spinner from '../components/Spinner';
 import '../styles/Auth.css';
 
 const Register = () => {
@@ -24,7 +23,7 @@ const Register = () => {
     setError('');
     setLoading(true);
 
-    // Validación básica en el frontend antes de llamar al backend
+    // validación básica antes de llamar al backend
     if (formData.password.length < 6) {
       setError('La contraseña debe tener al menos 6 caracteres');
       setLoading(false);
@@ -86,7 +85,8 @@ const Register = () => {
             />
           </div>
 
-          <button type="submit" className="btn-primary" disabled={loading}>
+          <button type="submit" className="btn-primary btn-loading" disabled={loading}>
+            {loading && <Spinner size="sm" />}
             {loading ? 'Creando cuenta...' : 'Registrarse'}
           </button>
         </form>

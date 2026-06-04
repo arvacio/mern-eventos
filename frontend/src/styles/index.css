@@ -188,6 +188,45 @@ body {
   padding: 40px;
 }
 
+/* ============================================================
+   Spinner de carga
+   ============================================================ */
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* spinner grande — para carga de página */
+.spinner {
+  width: 42px;
+  height: 42px;
+  border: 4px solid var(--border-color);
+  border-top-color: var(--btn-primary-bg);
+  border-radius: 50%;
+  animation: spin 0.75s linear infinite;
+}
+
+/* spinner pequeño — para botones */
+.spinner--sm {
+  width: 16px;
+  height: 16px;
+  border-width: 2px;
+}
+
+/* contenedor centrado para el spinner de página */
+.spinner-wrapper {
+  display: flex;
+  justify-content: center;
+  padding: 60px 20px;
+}
+
+/* botón con spinner: alinea el spinner y el texto en fila */
+.btn-loading {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
 /* Inputs y textareas globales */
 .form-group label {
   display: block;

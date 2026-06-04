@@ -1,4 +1,4 @@
-// models/User.js — Modelo de Usuario
+// models/User.js — estructura del usuario en la BD
 
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
@@ -28,19 +28,16 @@ const userSchema = new mongoose.Schema(
       default: 'user',
     },
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 );
 
-// Encriptar contraseña antes de guardar
-
+// encriptar la contraseña antes de guardar
 userSchema.pre('save', async function () {
   if (!this.isModified('password')) return;
   this.password = await bcrypt.hash(this.password, 10);
 });
 
-// Método para comparar contraseñas en el login
+// comparar contraseña en el login
 userSchema.methods.comparePassword = async function (candidatePassword) {
   return bcrypt.compare(candidatePassword, this.password);
 };

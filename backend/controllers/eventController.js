@@ -1,7 +1,9 @@
+// controllers/eventController.js — CRUD de eventos
+
 const Event = require('../models/Event');
 const mongoose = require('mongoose');
 
-// POST /api/events — Crear evento
+// POST /api/events — crear evento
 const createEvent = async (req, res) => {
   const { name, date, location, description } = req.body;
 
@@ -29,40 +31,22 @@ const createEvent = async (req, res) => {
   }
 };
 
-// GET /api/events — Obtener eventos con búsqueda, filtros, ordenamiento y paginación
-// Admin ve TODOS los eventos de todos los usuarios (con nombre del dueño).
-// Usuario regular solo ve los suyos.
-//
-// Query params:
-//   q         — texto libre (nombre, ubicación, descripción)
-//   startDate — fecha mínima (YYYY-MM-DD)
-//   endDate   — fecha máxima (YYYY-MM-DD)
-//   sortBy    — date | name | location | createdAt  (default: date)
-//   sortOrder — asc | desc  (default: asc)
-//   page      — número de página  (default: 1)
-//   limit     — resultados por página, máx 50  (default: 6)
+// GET /api/events — listar eventos con búsqueda, filtros, orden y paginación
+// admin ve todos; usuario normal solo los suyos
 const getEvents = async (req, res) => {
   try {
     const isAdmin = req.user.role === 'admin';
+    const { q = '', startDate, endDate, sortBy = 'date', sortOrder = 'asc', page = 1, limit = 6 } = req.query;
 
-    const {
-      q = '',
-      startDate,
-      endDate,
-      sortBy = 'date',
-      sortOrder = 'asc',
-      page = 1,
-      limit = 6,
-    } = req.query;
-
-    // Admin ve todos; usuario regular solo los suyos
     const filter = isAdmin ? {} : { user: req.user._id };
 
+    // buscar en nombre, ubicación y descripción
     if (q.trim()) {
       const regex = new RegExp(q.trim(), 'i');
       filter.$or = [{ name: regex }, { location: regex }, { description: regex }];
     }
 
+    // filtrar por rango de fechas
     if (startDate || endDate) {
       filter.date = {};
       if (startDate) filter.date.$gte = new Date(startDate);
@@ -81,32 +65,23 @@ const getEvents = async (req, res) => {
     const limitNum = Math.min(50, Math.max(1, parseInt(limit) || 6));
     const skip = (pageNum - 1) * limitNum;
 
-    // Admin recibe nombre y email del dueño en cada evento
     const eventsQuery = Event.find(filter)
       .sort({ [sortField]: sortDir })
       .skip(skip)
       .limit(limitNum);
 
+    // admin también recibe nombre y email del dueño
     if (isAdmin) eventsQuery.populate('user', 'name email');
 
-    const [events, total] = await Promise.all([
-      eventsQuery,
-      Event.countDocuments(filter),
-    ]);
+    const [events, total] = await Promise.all([eventsQuery, Event.countDocuments(filter)]);
 
-    res.json({
-      events,
-      total,
-      page: pageNum,
-      pages: Math.ceil(total / limitNum) || 1,
-      limit: limitNum,
-    });
+    res.json({ events, total, page: pageNum, pages: Math.ceil(total / limitNum) || 1, limit: limitNum });
   } catch (error) {
     res.status(500).json({ message: 'Error al obtener eventos', error: error.message });
   }
 };
 
-// GET /api/events/:id — Obtener un evento por ID
+// GET /api/events/:id — obtener un evento por ID
 const getEventById = async (req, res) => {
   if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
     return res.status(400).json({ message: 'ID de evento no válido' });
@@ -115,9 +90,7 @@ const getEventById = async (req, res) => {
   try {
     const event = await Event.findById(req.params.id).populate('user', 'name email');
 
-    if (!event) {
-      return res.status(404).json({ message: 'Evento no encontrado' });
-    }
+    if (!event) return res.status(404).json({ message: 'Evento no encontrado' });
 
     const isAdmin = req.user.role === 'admin';
     const isOwner = event.user._id.toString() === req.user._id.toString();
@@ -132,7 +105,7 @@ const getEventById = async (req, res) => {
   }
 };
 
-// PUT /api/events/:id — Actualizar evento
+// PUT /api/events/:id — actualizar evento
 const updateEvent = async (req, res) => {
   if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
     return res.status(400).json({ message: 'ID de evento no válido' });
@@ -143,9 +116,7 @@ const updateEvent = async (req, res) => {
   try {
     const event = await Event.findById(req.params.id);
 
-    if (!event) {
-      return res.status(404).json({ message: 'Evento no encontrado' });
-    }
+    if (!event) return res.status(404).json({ message: 'Evento no encontrado' });
 
     const isAdmin = req.user.role === 'admin';
     const isOwner = event.user.toString() === req.user._id.toString();
@@ -158,10 +129,7 @@ const updateEvent = async (req, res) => {
     event.date = date || event.date;
     event.location = location || event.location;
     event.description = description !== undefined ? description : event.description;
-
-    if (req.file) {
-      event.image = req.file.filename;
-    }
+    if (req.file) event.image = req.file.filename;
 
     const updatedEvent = await event.save();
     res.json(updatedEvent);
@@ -174,7 +142,7 @@ const updateEvent = async (req, res) => {
   }
 };
 
-// DELETE /api/events/:id — Eliminar evento
+// DELETE /api/events/:id — eliminar evento
 const deleteEvent = async (req, res) => {
   if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
     return res.status(400).json({ message: 'ID de evento no válido' });
@@ -183,9 +151,7 @@ const deleteEvent = async (req, res) => {
   try {
     const event = await Event.findById(req.params.id);
 
-    if (!event) {
-      return res.status(404).json({ message: 'Evento no encontrado' });
-    }
+    if (!event) return res.status(404).json({ message: 'Evento no encontrado' });
 
     const isAdmin = req.user.role === 'admin';
     const isOwner = event.user.toString() === req.user._id.toString();

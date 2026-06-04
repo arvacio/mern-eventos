@@ -1,25 +1,18 @@
-// pages/EventForm.js — Formulario de Crear / Editar Evento
-
-// Este componente sirve para DOS propósitos:
-// - Crear un nuevo evento (cuando no hay :id en la URL)
-// - Editar un evento existente (cuando hay :id en la URL)
-//
-// useParams lee los parámetros de la URL.
-// Si la URL es /events/edit/abc123, entonces params.id = "abc123"
-
+// pages/EventForm.js — formulario para crear o editar un evento
 
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import api from '../api/axios';
 import Navbar from '../components/Navbar';
+import Spinner from '../components/Spinner';
 import '../styles/EventForm.css';
 
 const EventForm = () => {
-  const { id } = useParams(); // Si existe, estamos en modo edición
-  const isEditing = Boolean(id); // true si hay ID, false si no
+  const { id } = useParams();
+  const isEditing = Boolean(id);
   const navigate = useNavigate();
 
-  // Estado del formulario
   const [formData, setFormData] = useState({
     name: '',
     date: '',
@@ -27,66 +20,51 @@ const EventForm = () => {
     description: '',
   });
 
-  // El archivo de imagen se maneja separado (no es texto)
   const [imageFile, setImageFile] = useState(null);
-
-  // Para mostrar la imagen actual cuando estamos editando
   const [currentImage, setCurrentImage] = useState(null);
-
-  // URL temporal para previsualizar la imagen recién seleccionada
   const [previewUrl, setPreviewUrl] = useState(null);
-
-  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Libera la URL de objeto al desmontar o cuando cambia la imagen
+  // liberar la URL de objeto al salir o cambiar imagen
   useEffect(() => {
     return () => {
       if (previewUrl) URL.revokeObjectURL(previewUrl);
     };
   }, [previewUrl]);
 
-  
-  // Si estamos editando, cargamos los datos del evento al iniciar
-  
+  // si estamos editando, cargar los datos del evento
   useEffect(() => {
     if (isEditing) {
       const fetchEvent = async () => {
         try {
           const { data } = await api.get(`/events/${id}`);
-
-          // Llenamos el formulario con los datos existentes
           setFormData({
             name: data.name,
-            // La fecha viene como "2024-06-01T00:00:00.000Z"
-            // Necesitamos solo "2024-06-01" para el input type="date"
             date: data.date.split('T')[0],
             location: data.location,
             description: data.description || '',
           });
-
-          // Guardamos la imagen actual para mostrarla
           if (data.image) setCurrentImage(data.image);
         } catch (err) {
           const status = err.response?.status;
           if (status === 403) {
-            setError('No tienes permiso para ver este evento.');
+            toast.error('No tienes permiso para ver este evento.');
           } else if (status === 404) {
-            setError('El evento no fue encontrado.');
+            toast.error('El evento no fue encontrado.');
           } else {
-            setError('Error al cargar el evento');
+            toast.error('Error al cargar el evento.');
           }
+          navigate('/dashboard');
         }
       };
       fetchEvent();
     }
-  }, [id, isEditing]);
+  }, [id, isEditing, navigate]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // handleImageChange se ejecuta cuando el usuario selecciona un archivo
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -95,49 +73,39 @@ const EventForm = () => {
     setPreviewUrl(URL.createObjectURL(file));
   };
 
-  
-  // handleSubmit — envía el formulario
-  
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
     setLoading(true);
 
     try {
-      // FormData es necesario para enviar archivos junto con texto
-      // No podemos usar JSON cuando hay imágenes: usamos multipart/form-data
+      // usamos FormData para poder enviar la imagen junto con el texto
       const data = new FormData();
       data.append('name', formData.name);
       data.append('date', formData.date);
       data.append('location', formData.location);
       data.append('description', formData.description);
-
-      // Solo agregamos la imagen si el usuario seleccionó una
-      if (imageFile) {
-        data.append('image', imageFile); // 'image' debe coincidir con upload.single('image') en el backend
-      }
+      if (imageFile) data.append('image', imageFile);
 
       if (isEditing) {
-        // PUT para actualizar
         await api.put(`/events/${id}`, data);
+        toast.success('Evento actualizado correctamente');
       } else {
-        // POST para crear
         await api.post('/events', data);
+        toast.success('Evento creado correctamente');
       }
 
-      // Si todo salió bien, regresamos al dashboard
       navigate('/dashboard');
     } catch (err) {
       const status = err.response?.status;
       const message = err.response?.data?.message;
       if (status === 400) {
-        setError(message || 'Datos inválidos. Revisa los campos del formulario.');
+        toast.error(message || 'Datos inválidos. Revisa los campos del formulario.');
       } else if (status === 403) {
-        setError('No tienes permiso para realizar esta acción.');
+        toast.error('No tienes permiso para realizar esta acción.');
       } else if (status === 404) {
-        setError('El evento no fue encontrado.');
+        toast.error('El evento no fue encontrado.');
       } else {
-        setError(message || 'Error al guardar el evento');
+        toast.error(message || 'Error al guardar el evento.');
       }
     } finally {
       setLoading(false);
@@ -150,8 +118,6 @@ const EventForm = () => {
 
       <div className="form-container">
         <h2>{isEditing ? 'Editar Evento' : 'Nuevo Evento'}</h2>
-
-        {error && <div className="alert alert-error">{error}</div>}
 
         <form onSubmit={handleSubmit} className="event-form">
           <div className="form-group">
@@ -168,7 +134,6 @@ const EventForm = () => {
 
           <div className="form-group">
             <label>Fecha *</label>
-            {/* type="date" muestra un selector de fecha nativo del navegador */}
             <input
               type="date"
               name="date"
@@ -192,7 +157,6 @@ const EventForm = () => {
 
           <div className="form-group">
             <label>Descripción (opcional)</label>
-            {/* textarea para textos largos */}
             <textarea
               name="description"
               value={formData.description}
@@ -205,8 +169,8 @@ const EventForm = () => {
           <div className="form-group">
             <label>Imagen (opcional)</label>
 
-            {/* Si hay imagen actual, la mostramos como vista previa */}
-            {currentImage && (
+            {/* imagen guardada en modo edición */}
+            {currentImage && !previewUrl && (
               <div className="image-preview">
                 <p>Imagen actual:</p>
                 <img
@@ -216,13 +180,9 @@ const EventForm = () => {
               </div>
             )}
 
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleImageChange}
-            />
+            <input type="file" accept="image/*" onChange={handleImageChange} />
 
-            {/* Vista previa de la imagen recién seleccionada */}
+            {/* vista previa de la imagen recién seleccionada */}
             {previewUrl && (
               <div className="image-preview">
                 <p>Vista previa:</p>
@@ -232,7 +192,6 @@ const EventForm = () => {
           </div>
 
           <div className="form-buttons">
-            {/* Botón cancelar: regresa sin guardar */}
             <button
               type="button"
               className="btn-secondary"
@@ -241,7 +200,8 @@ const EventForm = () => {
               Cancelar
             </button>
 
-            <button type="submit" className="btn-primary" disabled={loading}>
+            <button type="submit" className="btn-primary btn-loading" disabled={loading}>
+              {loading && <Spinner size="sm" />}
               {loading ? 'Guardando...' : isEditing ? 'Guardar cambios' : 'Crear evento'}
             </button>
           </div>

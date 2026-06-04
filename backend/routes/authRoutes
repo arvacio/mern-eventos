@@ -1,27 +1,12 @@
-// routes/authRoutes.js — Rutas de Autenticación
-
-// Las "rutas" conectan una URL con su controlador.
-// Aquí definimos qué función se ejecuta cuando llega una
-// petición a cada URL.
-//
-// Express Router nos permite organizar rutas en archivos
-// separados y luego unirlos en server.js con un prefijo.
-
+// routes/authRoutes — rutas de autenticación
 
 const express = require('express');
-const router = express.Router(); // Creamos un mini-enrutador
-
+const router = express.Router();
 const { register, login, getProfile } = require('../controllers/authController');
 const { protect } = require('../middleware/auth');
 
-// POST /api/auth/register → ejecuta la función 'register'
 router.post('/register', register);
-
-// POST /api/auth/login → ejecuta la función 'login'
 router.post('/login', login);
-
-// GET /api/auth/profile → primero verifica el token (protect), luego ejecuta 'getProfile'
-// El middleware 'protect' se pasa como segundo argumento, antes del controlador
-router.get('/profile', protect, getProfile);
+router.get('/profile', protect, getProfile); // protect verifica el token antes
 
 module.exports = router;
